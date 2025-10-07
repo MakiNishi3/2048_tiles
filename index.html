@@ -380,7 +380,33 @@ function centerText(msg,siz,clr){
   tile.font = "bold " + siz + "px Rubik";
   tile.fillStyle = clr;
   tile.textAlign = "center";
-  tile.fillText(msg,500,500+siz/3);
+
+  // Word wrap: split text into lines that fit within canvas width
+  var maxWidth = 950; // Leave some margin
+  var words = msg.split(' ');
+  var lines = [];
+  var currentLine = words[0];
+
+  for (var i = 1; i < words.length; i++) {
+    var testLine = currentLine + ' ' + words[i];
+    var metrics = tile.measureText(testLine);
+    if (metrics.width > maxWidth && currentLine.length > 0) {
+      lines.push(currentLine);
+      currentLine = words[i];
+    } else {
+      currentLine = testLine;
+    }
+  }
+  lines.push(currentLine);
+
+  // Draw lines centered vertically
+  var lineHeight = siz * 1.2;
+  var totalHeight = lines.length * lineHeight;
+  var startY = 500 - (totalHeight / 2) + (siz / 2);
+
+  for (var i = 0; i < lines.length; i++) {
+    tile.fillText(lines[i], 500, startY + (i * lineHeight));
+  }
 }
 
 // Color variables
@@ -433,7 +459,7 @@ function renderTileColor(tl){
 
 function renderText(bigNum){
   var numText = createNumber(bigNum);
-  var size = Math.min(1300/(numText.toString().length),200);
+  var size = 80; // Keep constant font size, allow wrapping
 
   // Efficient comparison using log values
   var logValue = bigNum instanceof BigNum ? bigNum.getLog() : Math.log10(bigNum);
