@@ -60,7 +60,7 @@ button {
 			<button onclick="time = 5e201; document.getElementById('running').checked = true;" style="background: #ff00ff; color: white; font-weight: bold;">TEST: Jump to Ω</button>
 			<button onclick="time = 5e10; spd = 1e6; document.getElementById('running').checked = true;" style="background: #ffaa00; color: black;">TEST: Tier 2</button>
 			<button onclick="spd = 1048576 * 1048576; document.getElementById('running').checked = true;" style="background: #00ff00; color: black;">Set Ultra Speed</button>
-			<button onclick="time = 0; spd = 5; tileNum = new BigNum(1); document.getElementById('running').checked = false;">RESET</button>
+			<button onclick="time = 0; spd = 5; tileNum = new BigNum(1); document.getElementById('running').checked = false; var bgMusic = document.getElementById('bgMusic'); if(bgMusic) { bgMusic.pause(); bgMusic.currentTime = 0; }">RESET</button>
 		</div>
     <canvas id="tile" width="1000" height="1000"></canvas><br>
 		<div style="white-space: nowrap;">
