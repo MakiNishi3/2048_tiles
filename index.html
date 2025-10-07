@@ -276,7 +276,7 @@ function createNumber(bigNum, skipOmega){
           var mantissa = Math.pow(10, remainder % 3);
           if(isFinite(mantissa) && isFinite(logOrder)) {
             var roundedMantissa = Math.floor(mantissa * 1000) / 1000;
-            var abbreviation = createAbbreviation(Math.max(0, logOrder - 1), 0);
+            var abbreviation = createAbbreviation(Math.min(Math.max(0, logOrder - 1), 1e11), 0);
             result += " " + roundedMantissa + abbreviation;
           }
         }
@@ -303,7 +303,7 @@ function createNumber(bigNum, skipOmega){
           var mantissa = Math.pow(10, remainder % 3);
           if(isFinite(mantissa) && isFinite(logOrder)) {
             var roundedMantissa = Math.floor(mantissa * 1000) / 1000;
-            var abbreviation = createAbbreviation(Math.max(0, logOrder - 1), 0);
+            var abbreviation = createAbbreviation(Math.min(Math.max(0, logOrder - 1), 1e11), 0);
             result += " " + roundedMantissa + abbreviation;
           }
         }
@@ -586,7 +586,7 @@ setInterval(function(){
           var mantissa = Math.pow(10, remainder % 3);
           if(isFinite(mantissa) && isFinite(logOrder)) {
             var roundedMantissa = Math.floor(mantissa * 1000) / 1000;
-            var abbreviation = createAbbreviation(Math.max(0, logOrder - 1), 0);
+            var abbreviation = createAbbreviation(Math.min(Math.max(0, logOrder - 1), 1e11), 0);
             result += " " + roundedMantissa + abbreviation;
           }
         }
