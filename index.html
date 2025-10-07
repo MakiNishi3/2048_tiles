@@ -60,7 +60,7 @@ button {
 			<button onclick="time = 5e201; document.getElementById('running').checked = true;" style="background: #ff00ff; color: white; font-weight: bold;">TEST: Jump to Ω</button>
 			<button onclick="time = 5e10; spd = 1e6; document.getElementById('running').checked = true;" style="background: #ffaa00; color: black;">TEST: Tier 2</button>
 			<button onclick="spd = 1048576 * 1048576; document.getElementById('running').checked = true;" style="background: #00ff00; color: black;">Set Ultra Speed</button>
-			<button onclick="time = 0; spd = 5; power = 2; tileNum = new BigNum(1); document.getElementById('running').checked = false; var bgMusic = document.getElementById('bgMusic'); if(bgMusic) { bgMusic.pause(); bgMusic.currentTime = 0; }">RESET</button>
+			<button onclick="time = 0; spd = 2; power = 2; tileNum = new BigNum(1); document.getElementById('running').checked = false; var bgMusic = document.getElementById('bgMusic'); if(bgMusic) { bgMusic.pause(); bgMusic.currentTime = 0; }">RESET</button>
 		</div>
     <canvas id="tile" width="1000" height="1000"></canvas><br>
 		<div style="white-space: nowrap;">
@@ -153,7 +153,7 @@ class BigNum {
 var t = document.getElementById("tile");
 var tile = t.getContext("2d");
 var tileNum = new BigNum(1);
-var spd = 5;
+var spd = 2;
 var time = 0;
 var paused = -1;
 var power = 2;
@@ -528,7 +528,7 @@ setInterval(function(){
       time = 0;
     }
     if(!isFinite(spd) || isNaN(spd)) {
-      spd = 5;
+      spd = 2;
     }
 
     // Calculate tileNum efficiently
