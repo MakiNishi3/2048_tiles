@@ -172,6 +172,16 @@ function createAbbreviation(x,m){
   var currentX = x;
   var currentM = m;
 
+  // Helper function to get stage name, handling overflow
+  function getStageName(stageIndex) {
+    if(stageIndex < stages.length) {
+      return stages[stageIndex];
+    } else {
+      // For stages beyond the array, use notation like "Tc36", "Tc37", etc.
+      return "Tc" + stageIndex;
+    }
+  }
+
   // Iteratively process from innermost to outermost
   while(true){
     var main = ones[currentX%10] + tens[Math.floor(currentX/10)%10] + hundreds[Math.floor(currentX/100)%10];
@@ -190,13 +200,13 @@ function createAbbreviation(x,m){
       }
     } else {
       if(currentX == 1){
-        parts.unshift(stages[currentM]);
+        parts.unshift(getStageName(currentM));
         break;
       } else if(currentX < 1000) {
-        parts.unshift(main + stages[currentM]);
+        parts.unshift(main + getStageName(currentM));
         break;
       } else {
-        parts.unshift(main + stages[currentM]);
+        parts.unshift(main + getStageName(currentM));
         currentX = Math.floor(currentX/1000);
         currentM++;
       }
