@@ -1,0 +1,685 @@
+<html lang="en"><head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	 <link rel="preconnect" href="https://fonts.googleapis.com">
+   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+   <link href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+    <style>/* CSS files add styling rules to your content */
+
+body {
+  font-family: "Rubik", "Arial Unicode MS", Arial, sans-serif;
+  margin: 0;
+  padding: 16px;
+  font-size: 30px;
+  background-color: black;
+	background-image: linear-gradient(rgb(0,0,0), rgb(128,128,128));
+  color: white;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+			}
+
+/* Ensure Omega symbols display properly */
+#tileNum, #section, #omegaStatus {
+  font-family: "Rubik", "Arial Unicode MS", "Segoe UI Symbol", "DejaVu Sans", sans-serif;
+}
+
+.button-row {
+  white-space: nowrap;
+  margin: 5px 0;
+}
+
+button {
+  font-size: 14px;
+  padding: 5px 10px;
+  margin: 2px;
+}</style>
+  </head>  
+  <body class="vsc-initialized">
+		<div class="button-row">
+			<small>Running!:</small> <input type="checkbox" id="running">
+			<button onclick="var newSpd = prompt('What speed should tiles change at?'); if(newSpd) spd = Number(eval(newSpd));">Change speed</button>
+			<button onclick="var newPower = prompt('What will the base be? (e.g. 2 is 2^n and 3 is 3^n)'); if(newPower) power = Number(newPower);">Change base</button>
+			<button onclick="time -= 10000 * spd"><<<<<</button>
+			<button onclick="time -= 1000 * spd"><<<<</button>
+			<button onclick="time -= 100 * spd"><<<</button>
+			<button onclick="time -= 10 * spd"><<</button>
+			<button onclick="time -= 1 * spd"><</button>
+			<button onclick="time += 1 * spd">></button>
+			<button onclick="time += 10 * spd">>></button>
+			<button onclick="time += 100 * spd">>>></button>
+			<button onclick="time += 1000 * spd">>>>></button>
+			<button onclick="time += 10000 * spd">>>>>></button>
+		</div>
+		<div class="button-row">
+			<button onclick="time = 1.35e11; document.getElementById('running').checked = true;" style="background: #ffff00; color: black; font-weight: bold;">TEST: Jump to 90% Array</button>
+			<button onclick="time = 5e101; document.getElementById('running').checked = true;" style="background: #00ffff; color: black; font-weight: bold;">TEST: Jump to ω</button>
+			<button onclick="time = 5e201; document.getElementById('running').checked = true;" style="background: #ff00ff; color: white; font-weight: bold;">TEST: Jump to Ω</button>
+			<button onclick="time = 5e10; spd = 1e6; document.getElementById('running').checked = true;" style="background: #ffaa00; color: black;">TEST: Tier 2</button>
+			<button onclick="spd = 1048576 * 1048576; document.getElementById('running').checked = true;" style="background: #00ff00; color: black;">Set Ultra Speed</button>
+			<button onclick="time = 0; spd = 5; tileNum = new BigNum(1); document.getElementById('running').checked = false;">RESET</button>
+		</div>
+    <canvas id="tile" width="1000" height="1000"></canvas><br>
+		<div style="white-space: nowrap;">
+			Tile: <span id="tileNum" style="font-weight: bold"> loading</span>,
+			Section: <span id="section" style="font-weight: bold">loading</span>,
+			Time: <span id="timeDisplay" style="font-weight: bold">loading</span>,
+			Speed: <span id="speed" style="font-weight: bold">loading</span>
+		</div>
+		<span id="omegaStatus" style="color: #888; font-size: 18px;"></span><br>
+		<small style="color: #888">Format: nΩ/ω {array} tiles - where array shows magnitude and tiles show count<br>
+		ω (small omega) = Numbers beyond 10^(10^100) - First infinite ordinal<br>
+		Ω (large Omega) = Numbers beyond 10^(10^200) - First uncountable ordinal</small>
+
+		<audio id="bgMusic" loop>
+			<source src="background_music.mp3" type="audio/mpeg">
+		</audio>
+
+</body><script>// Made by Katakana! (Optimized)
+// Optimizations:
+// - BigNum class for handling numbers beyond e+308
+// - No recursion (iterative createAbbreviation)
+// - Efficient log-space calculations
+// - Power tower notation {base, height, iterations} for extreme values
+// - Fast rendering with minimal calculations per frame
+// - Omega notation for ordinal-like infinities
+
+// Thresholds for omega notation (representing ordinal infinities)
+// These thresholds represent conceptual transitions to "infinity" in set theory terms:
+// - ω (small omega): First infinite ordinal, order type of natural numbers (ℕ)
+//   Represents the smallest countable infinity, beyond all finite numbers
+// - Ω (large Omega): First uncountable ordinal (ω₁)
+//   Represents infinity beyond all countable ordinals, a higher order of infinity
+// Note: These are LOG VALUES in tier 2 BigNum, representing truly enormous numbers
+// e.g., log = 1e100 means the actual number is 10^(10^100)
+const OMEGA_SMALL_THRESHOLD = 1e100;   // ω: log₁₀ = 10^100 (number is 10^(10^100))
+const OMEGA_LARGE_THRESHOLD = 1e200;   // Ω: log₁₀ = 10^200 (number is 10^(10^200))
+
+// BigNum class for handling extremely large numbers efficiently
+// Tier 1: Normal numbers (< 1e308)
+// Tier 2: Log space representation (e+308 to e+1e15)
+// Tier 3: Power tower notation for beyond that
+class BigNum {
+  constructor(value = 1, log = null, tower = null) {
+    if(tower) {
+      // Tier 3: Power tower {base, height, count}
+      this.tier = 3;
+      this.tower = tower;
+    } else if(log !== null && log > 308) {
+      // Tier 2: Log space for numbers > e+308
+      this.tier = 2;
+      this.log = log;
+    } else if(value > 1e308 || !isFinite(value)) {
+      // Tier 2: Convert overflow to log space
+      this.tier = 2;
+      this.log = log || 308;
+    } else {
+      // Tier 1: Normal numbers
+      this.tier = 1;
+      this.value = value;
+    }
+  }
+
+  toDisplay() {
+    if(this.tier === 1) {
+      return this.value;
+    } else if(this.tier === 2) {
+      // Return as 10^x where x is the log
+      return Math.pow(10, this.log % 1) * Math.pow(10, Math.floor(this.log));
+    } else if(this.tier === 3) {
+      // Return a representative value for calculations
+      return 1e308;
+    }
+    return 1;
+  }
+
+  toNumber() {
+    if(this.tier === 1) return this.value;
+    if(this.tier === 2) return Math.pow(10, Math.min(this.log, 308));
+    return 1e308;
+  }
+
+  getLog() {
+    if(this.tier === 1) return Math.log10(this.value);
+    if(this.tier === 2) return this.log;
+    if(this.tier === 3) return Math.pow(10, this.tower.height);
+    return 0;
+  }
+}
+
+var t = document.getElementById("tile");
+var tile = t.getContext("2d");
+var tileNum = new BigNum(1);
+var spd = 5;
+var time = 0;
+var paused = -1;
+var power = 2;
+var ones = [" "," Un"," Duo"," Tr"," Qa"," Qi"," Sx"," Sp"," Oc"," No"];
+var aones = [" K"," M"," B"," T"," Qa"," Qi"," Sx"," Sp"," Oc"," No"];
+var tens = ["","De","Vt","Tg","qg","Qg","sg","Sg","Og","Ng"];
+var hundreds = ["","Ce","Du","Tr","Qa","Qi","Se","Si","Ot","Ni"];
+var stages = ["","Mil","Mic","Nan","Pic","Fmt","Att","Zpt","Yct","Rnt","Qct","Mec","Duc","Trc","Ttc","Pec","Hxc","Hpc","Occ","Enc","Ic","MeIc","DuIc","TrIc","TtIc","PeIc","HxIc","HpIc","OcIc","EnIc","Tc","MeTc","DuTc","TrTc","TtTc","PeTc"];
+			
+function pRand(s,f = 1){
+  return (Math.sin(s)%1)*(f/2)+f/2;
+} // Procedural RNG function
+
+function createAbbreviation(x,m){
+  var parts = [];
+  var currentX = x;
+  var currentM = m;
+
+  // Iteratively process from innermost to outermost
+  while(true){
+    var main = ones[currentX%10] + tens[Math.floor(currentX/10)%10] + hundreds[Math.floor(currentX/100)%10];
+
+    if(currentM == 0){
+      if(currentX < 10){
+        parts.unshift(aones[currentX]);
+        break;
+      } else if(currentX < 1000){
+        parts.unshift(main);
+        break;
+      } else {
+        parts.unshift(main);
+        currentX = Math.floor(currentX/1000);
+        currentM++;
+      }
+    } else {
+      if(currentX == 1){
+        parts.unshift(stages[currentM]);
+        break;
+      } else if(currentX < 1000) {
+        parts.unshift(main + stages[currentM]);
+        break;
+      } else {
+        parts.unshift(main + stages[currentM]);
+        currentX = Math.floor(currentX/1000);
+        currentM++;
+      }
+    }
+  }
+
+  return parts.join('');
+}
+
+function createNumber(bigNum, skipOmega){
+  // Handle BigNum objects
+  if(bigNum instanceof BigNum) {
+    if(bigNum.tier === 3) {
+      // Check for omega thresholds in tier 3
+      var t = bigNum.tower;
+      var towerMagnitude = t.height * t.iterations;
+
+      // Ω (Large Omega): First uncountable ordinal - reached at extreme tier 3
+      if(towerMagnitude > 100) {
+        var logTowerMag = Math.log10(towerMagnitude);
+        var wholeOmegas = Math.floor(logTowerMag);
+        var remainder = logTowerMag - wholeOmegas;
+
+        var remainderText = "0";
+        if(remainder > 0) {
+          var logOrder = Math.floor(remainder / 3);
+          if(remainder >= 3) {
+            var mantissa = Math.pow(10, remainder % 3);
+            var roundedMantissa = Math.floor(mantissa * 1000) / 1000;
+            remainderText = roundedMantissa + createAbbreviation(Math.max(0, logOrder - 1), 0);
+          } else {
+            var val = Math.pow(10, remainder);
+            remainderText = isFinite(val) ? Math.floor(val).toString() : "0";
+          }
+        }
+
+        if(wholeOmegas > 1e10) {
+          return wholeOmegas.toExponential(2) + `Ω.${remainderText}`;
+        }
+        return `${wholeOmegas}Ω.${remainderText}`;
+      }
+
+      // Display power tower notation as {base, height, iterations}
+      return `{${t.base}, ${t.height}, ${t.iterations}}`;
+    } else if(bigNum.tier === 2) {
+      // Large number in log space
+      var lt = bigNum.log;
+
+      // Check omega thresholds (unless skipOmega is true for remainder formatting)
+      if(!skipOmega && lt >= OMEGA_LARGE_THRESHOLD) {
+        var wholeOmegas = Math.floor(lt / OMEGA_LARGE_THRESHOLD);
+        var remainder = lt - (wholeOmegas * OMEGA_LARGE_THRESHOLD);
+
+        // Format: nΩ {array} tiles (three parts)
+        var result = wholeOmegas > 0 ? wholeOmegas + "Ω" : "Ω";
+
+        if(remainder > 0 && isFinite(remainder)) {
+          // Part 2: Array notation for very large remainder
+          if(remainder > 1e12) {
+            result += ` {10, ${Math.floor(Math.log10(remainder))}}`;
+          }
+
+          // Part 3: Tiles - remainder is already a log value, so use it directly
+          var logOrder = Math.floor(remainder / 3);
+          var mantissa = Math.pow(10, remainder % 3);
+          if(isFinite(mantissa) && isFinite(logOrder)) {
+            var roundedMantissa = Math.floor(mantissa * 1000) / 1000;
+            var abbreviation = createAbbreviation(Math.min(Math.max(0, logOrder - 1), 1e11), 0);
+            result += " " + roundedMantissa + abbreviation;
+          }
+        }
+
+        return result;
+      }
+
+      // ω (Small Omega): First infinite ordinal
+      if(!skipOmega && lt >= OMEGA_SMALL_THRESHOLD) {
+        var wholeOmegas = Math.floor(lt / OMEGA_SMALL_THRESHOLD);
+        var remainder = lt - (wholeOmegas * OMEGA_SMALL_THRESHOLD);
+
+        // Format: nω {array} tiles (three parts)
+        var result = wholeOmegas > 0 ? wholeOmegas + "ω" : "ω";
+
+        if(remainder > 0 && isFinite(remainder)) {
+          // Part 2: Array notation for very large remainder
+          if(remainder > 1e12) {
+            result += ` {10, ${Math.floor(Math.log10(remainder))}}`;
+          }
+
+          // Part 3: Tiles - remainder is already a log value, so use it directly
+          var logOrder = Math.floor(remainder / 3);
+          var mantissa = Math.pow(10, remainder % 3);
+          if(isFinite(mantissa) && isFinite(logOrder)) {
+            var roundedMantissa = Math.floor(mantissa * 1000) / 1000;
+            var abbreviation = createAbbreviation(Math.min(Math.max(0, logOrder - 1), 1e11), 0);
+            result += " " + roundedMantissa + abbreviation;
+          }
+        }
+
+        return result;
+      }
+
+      // For very large log values, use simplified notation
+      if(!skipOmega && lt > 1e15) {
+        var logOfLt = Math.log10(lt);
+        var remainder = logOfLt - Math.floor(logOfLt);
+        var tileValue = Math.pow(10, remainder);
+        var roundedTile = Math.floor(tileValue * 1000) / 1000;
+        return `{10, 2, ${lt.toExponential(2)}} ${roundedTile}`;
+      }
+
+      // Standard abbreviation formatting
+      var logOrder = Math.floor(lt / 3);
+      if(!skipOmega && logOrder >= 1e9) {
+        // Show array notation with tiles part
+        var logOfLt = Math.log10(lt);
+        var arrayPart = `{10, ${Math.floor(logOfLt)}}`;
+
+        // Tiles part represents the fractional remainder of the log
+        var remainder = logOfLt - Math.floor(logOfLt);
+        var tileValue = Math.pow(10, remainder);
+        var roundedTile = Math.floor(tileValue * 1000) / 1000;
+
+        return `${arrayPart} ${roundedTile}`;
+      }
+
+      // Use standard K/M/B/T notation
+      if(logOrder < 0) logOrder = 0;
+
+      // For extremely large logOrder when skipOmega is true, cap it
+      if(skipOmega && logOrder > 1e15) {
+        // Use simpler notation for remainder display
+        return lt.toExponential(2);
+      }
+
+      var mantissa = Math.pow(10, lt % 3);
+      if(!isFinite(mantissa) || isNaN(mantissa)) mantissa = 1;
+      var roundedMantissa = Math.floor(mantissa * 1000) / 1000;
+
+      // Safely call createAbbreviation
+      if(logOrder > 1e12) {
+        // Too large for createAbbreviation, use scientific notation
+        return lt.toExponential(2);
+      }
+
+      return roundedMantissa + createAbbreviation(logOrder - 1, 0);
+    } else {
+      // Normal tier
+      var tl = bigNum.value;
+      var lt = tl * Math.log10(power);
+      if(tl < Math.log(5e4) / Math.log(power)){
+        return Math.pow(power, tl).toLocaleString();
+      } else {
+        var mantissa = Math.pow(10, lt % 3);
+        var precision = 4 - Math.floor(Math.log10(mantissa));
+        var roundedMantissa = Math.floor(mantissa * Math.pow(10, precision)) / Math.pow(10, precision);
+        return roundedMantissa + createAbbreviation(Math.floor(lt/3-1), 0);
+      }
+    }
+  }
+
+  // Fallback for regular numbers
+  var lt = bigNum * Math.log10(power);
+  if(bigNum < Math.log(5e4) / Math.log(power)){
+    return Math.pow(power, bigNum).toLocaleString();
+  } else {
+    var mantissa = Math.pow(10, lt % 3);
+    var precision = 4 - Math.floor(Math.log10(mantissa));
+    var roundedMantissa = Math.floor(mantissa * Math.pow(10, precision)) / Math.pow(10, precision);
+    return roundedMantissa + createAbbreviation(Math.floor(lt/3-1), 0);
+  }
+}
+
+// Canvas functions
+function fillRect(color,x1,y1,x2,y2){
+  tile.fillStyle = color;
+  tile.fillRect(x1,y1,x2,y2);
+}
+
+function centerText(msg,siz,clr){
+  tile.font = "bold " + siz + "px Rubik";
+  tile.fillStyle = clr;
+  tile.textAlign = "center";
+  tile.fillText(msg,500,500+siz/3);
+}
+
+// Color variables
+var startS1 = [30,50,96.1];
+var endS1 = [11,91.2,59.8];
+var startS2 = [45,77.4,68.8];
+var endS2 = [46,85.4,52.8];
+
+// Color functions
+function array2hsl(a){
+  return "hsl(" + a[0] + "," + a[1] + "%," + a[2] + "%)";
+}
+
+function lerpArray3(s,e,f){
+  return [s[0]+(e[0]-s[0])*f,s[1]+(e[1]-s[1])*f,s[2]+(e[2]-s[2])*f];
+}
+
+function createSection(tl){
+  var sNum = Math.floor((tl-1)/6);
+  var start = [pRand(sNum,360),pRand(sNum+8,25)+75,pRand(sNum+27,50)+25];
+  var end = [pRand(sNum,360)+pRand(sNum+64,120)-60,pRand(sNum+125,25)+75,pRand(sNum+216,15)+10];
+  return [start,end];
+}
+
+function genTileColor(tl){
+  if(tl <= 6){
+    return lerpArray3(startS1,endS1,(tl-1)/5)
+  } else if(tl <= 12){
+    return lerpArray3(startS2,endS2,(tl-7)/5);
+  } else {
+    return lerpArray3(createSection(tl)[0],createSection(tl)[1],(tl-(Math.floor((tl-1)/6)*6)-1)/5)
+  }
+}
+
+// Render functions
+function renderTileColor(tl){
+  // Handle both BigNum and regular numbers efficiently
+  var logVal;
+  if(tl instanceof BigNum) {
+    logVal = tl.getLog() / Math.log10(2);
+    // In omega territory, modulate the color to show continuous change
+    if(tl.tier >= 2 && tl.log >= OMEGA_SMALL_THRESHOLD) {
+      logVal = (tl.log % 1000) * 1e6; // Use modulo to create color cycling
+    }
+  } else {
+    logVal = tl * Math.log2(power);
+  }
+  fillRect(array2hsl(genTileColor(logVal)),0,0,1000,1000);
+}
+
+function renderText(bigNum){
+  var numText = createNumber(bigNum);
+  var size = Math.min(1300/(numText.toString().length),200);
+
+  // Efficient comparison using log values
+  var logValue = bigNum instanceof BigNum ? bigNum.getLog() : Math.log10(bigNum);
+
+  // Special styling for omega levels
+  var color = "#fff";
+  if(bigNum instanceof BigNum && bigNum.tier === 2) {
+    if(bigNum.log >= OMEGA_LARGE_THRESHOLD) {
+      color = "#ff00ff"; // Magenta for large Omega
+    } else if(bigNum.log >= OMEGA_SMALL_THRESHOLD) {
+      color = "#00ffff"; // Cyan for small omega
+    } else if(logValue < Math.log10(8)) {
+      color = "#444";
+    }
+  } else if(bigNum instanceof BigNum && bigNum.tier === 3) {
+    color = "#ff00ff"; // Magenta for tier 3 (Omega territory)
+  } else if(logValue < Math.log10(8)) {
+    color = "#444";
+  }
+
+  centerText(numText, size, color);
+}
+
+// Efficient calculation of tileNum from time
+function calculateTileNum(t) {
+  // Guard against NaN and invalid values
+  if(!isFinite(t) || isNaN(t)) {
+    return new BigNum(1);
+  }
+
+  var exponent = (t/50) + 1;
+
+  // Guard against NaN in exponent
+  if(!isFinite(exponent) || isNaN(exponent)) {
+    return new BigNum(1);
+  }
+
+  // Tier 1: Normal calculation
+  if(exponent < 300) {
+    var value = t + Math.pow(10, exponent) - 9;
+    if(!isFinite(value) || isNaN(value) || value < 1) {
+      value = 1;
+    }
+    return new BigNum(Math.floor(value));
+  }
+  // Tier 2: Log space for large exponents (up to extremely large values)
+  else if(exponent < 1e308) {
+    // For very large exponents, work in log space
+    // tileDec ≈ 10^exponent when 10^exponent >> time
+    // The log value represents log10 of the actual number
+    var logValue = exponent;
+    return new BigNum(null, logValue);
+  }
+  // Tier 3: Power tower notation for values beyond e+308
+  else {
+    var height = Math.log10(exponent);
+    var iterations = Math.floor(Math.log10(height));
+    return new BigNum(null, null, {base: 10, height: Math.floor(height), iterations: iterations});
+  }
+}
+
+// Rendering loop - optimized for efficiency
+setInterval(function(){
+    // Ensure time and speed are valid numbers
+    if(!isFinite(time) || isNaN(time)) {
+      time = 0;
+    }
+    if(!isFinite(spd) || isNaN(spd)) {
+      spd = 5;
+    }
+
+    // Calculate tileNum efficiently
+    tileNum = calculateTileNum(time);
+
+    // Render (functions handle BigNum internally)
+    renderTileColor(tileNum);
+    renderText(tileNum);
+
+    // Update UI elements
+    document.getElementById("tileNum").textContent = createNumber(tileNum);
+
+    // Section calculation - use log for large numbers, omega for ordinal-like infinities
+    if(tileNum.tier === 1) {
+      var section = Math.floor((tileNum.value-1)/6)+1;
+      document.getElementById("section").textContent = section;
+    } else if(tileNum.tier === 2) {
+      var lt = tileNum.log;
+
+      // Use omega notation for sections at infinite ordinal levels
+      if(lt >= OMEGA_LARGE_THRESHOLD) {
+        var wholeOmegas = Math.floor(lt / OMEGA_LARGE_THRESHOLD / 6);
+        var remainder = (lt / 6) - (wholeOmegas * OMEGA_LARGE_THRESHOLD);
+
+        // Format: nΩ/ω {array} tiles (three parts)
+        var result = wholeOmegas > 0 ? wholeOmegas + "Ω" : "Ω";
+
+        if(remainder > 0 && isFinite(remainder)) {
+          // Part 2: Array notation for very large remainder
+          if(remainder > 1e12) {
+            result += ` {10, ${Math.floor(Math.log10(remainder))}}`;
+          }
+
+          // Part 3: Tiles - remainder is already a log value, so use it directly
+          var logOrder = Math.floor(remainder / 3);
+          var mantissa = Math.pow(10, remainder % 3);
+          if(isFinite(mantissa) && isFinite(logOrder)) {
+            var roundedMantissa = Math.floor(mantissa * 1000) / 1000;
+            var abbreviation = createAbbreviation(Math.min(Math.max(0, logOrder - 1), 1e11), 0);
+            result += " " + roundedMantissa + abbreviation;
+          }
+        }
+
+        document.getElementById("section").textContent = result;
+      } else if(lt >= OMEGA_SMALL_THRESHOLD) {
+        var wholeOmegas = Math.floor(lt / OMEGA_SMALL_THRESHOLD / 6);
+        var remainder = (lt / 6) - (wholeOmegas * OMEGA_SMALL_THRESHOLD);
+
+        // Format remainder - nested omega notation for very large remainders
+        var remainderText = "0";
+        if(remainder > 0 && isFinite(remainder)) {
+          if(remainder >= OMEGA_LARGE_THRESHOLD) {
+            var remOmegas = Math.floor(remainder / OMEGA_LARGE_THRESHOLD);
+            if(remOmegas > 1e10) {
+              remainderText = remOmegas.toExponential(1) + "Ω";
+            } else if(remOmegas > 0) {
+              remainderText = remOmegas + "Ω";
+            } else {
+              remainderText = "Ω";
+            }
+          } else if(remainder >= OMEGA_SMALL_THRESHOLD) {
+            var remOmegas = Math.floor(remainder / OMEGA_SMALL_THRESHOLD);
+            if(remOmegas > 1e10) {
+              remainderText = remOmegas.toExponential(1) + "ω";
+            } else if(remOmegas > 0) {
+              remainderText = remOmegas + "ω";
+            } else {
+              remainderText = "ω";
+            }
+          } else {
+            var tempBigNum = new BigNum(null, remainder);
+            remainderText = createNumber(tempBigNum, true);
+          }
+        }
+
+        if(wholeOmegas > 1e10) {
+          document.getElementById("section").textContent = wholeOmegas.toExponential(2) + `ω.${remainderText}`;
+        } else if(wholeOmegas >= 1) {
+          document.getElementById("section").textContent = `${wholeOmegas}ω.${remainderText}`;
+        } else {
+          document.getElementById("section").textContent = `ω.${remainderText}`;
+        }
+      } else {
+        var logSection = Math.floor(tileNum.log / 6);
+        document.getElementById("section").textContent = "10^" + logSection.toExponential(1);
+      }
+    } else {
+      // Tier 3: Show omega with tower magnitude
+      var t = tileNum.tower;
+      var logTowerMag = Math.log10(t.height * t.iterations);
+      var wholeOmegas = Math.floor(logTowerMag / 6);
+      var remainder = logTowerMag - (wholeOmegas * 6);
+
+      var remainderText = "";
+      if(remainder > 0) {
+        var logOrder = Math.floor(remainder / 3);
+        if(remainder > 3) {
+          var mantissa = Math.pow(10, remainder % 3);
+          var roundedMantissa = Math.floor(mantissa * 1000) / 1000;
+          remainderText = roundedMantissa + createAbbreviation(logOrder - 1, 0);
+        } else {
+          remainderText = Math.floor(Math.pow(10, remainder)).toString();
+        }
+      }
+
+      if(wholeOmegas > 1e10) {
+        document.getElementById("section").textContent = wholeOmegas.toExponential(2) + `Ω.${remainderText}`;
+      } else {
+        document.getElementById("section").textContent = `${wholeOmegas}Ω.${remainderText}`;
+      }
+    }
+
+    // Display time with safe formatting
+    var timeDisplay;
+    if(!isFinite(time) || isNaN(time)) {
+      timeDisplay = "0.00";
+    } else if(time > 1e10) {
+      timeDisplay = time.toExponential(2);
+    } else {
+      timeDisplay = (Math.round(time * 1000000000)/1000000000).toFixed(2);
+    }
+    document.getElementById("timeDisplay").textContent = timeDisplay;
+
+    // Display speed with safe formatting
+    var speedDisplay;
+    if(!isFinite(spd) || isNaN(spd)) {
+      speedDisplay = "5";
+    } else if(spd > 1e6) {
+      speedDisplay = spd.toExponential(2);
+    } else {
+      speedDisplay = spd;
+    }
+    document.getElementById("speed").textContent = speedDisplay;
+
+    // Update omega status indicator
+    var omegaStatusEl = document.getElementById("omegaStatus");
+    if(tileNum.tier === 3) {
+      omegaStatusEl.textContent = "🌌 TRANSCENDED: Ω Territory (Uncountable Infinity)";
+      omegaStatusEl.style.color = "#ff00ff";
+    } else if(tileNum.tier === 2) {
+      if(tileNum.log >= OMEGA_LARGE_THRESHOLD) {
+        omegaStatusEl.textContent = "🌌 TRANSCENDED: Ω (First Uncountable Ordinal)";
+        omegaStatusEl.style.color = "#ff00ff";
+      } else if(tileNum.log >= OMEGA_SMALL_THRESHOLD) {
+        omegaStatusEl.textContent = "✨ INFINITE: ω (First Infinite Ordinal)";
+        omegaStatusEl.style.color = "#00ffff";
+      } else {
+        omegaStatusEl.textContent = "";
+      }
+    } else {
+      omegaStatusEl.textContent = "";
+    }
+
+    // Update time - scale increment with magnitude for large values
+    var bgMusic = document.getElementById("bgMusic");
+    if (document.getElementById("running").checked) {
+      var increment = spd / 50;
+
+      // For very large time values, scale the increment proportionally
+      if(time > 1e50) {
+        // Add a percentage of current time value to keep movement visible
+        var scaledIncrement = time * 0.00001; // 0.001% of current value
+        increment = Math.max(increment, scaledIncrement);
+      }
+
+      time += increment;
+
+      // Play background music when running
+      if (bgMusic && bgMusic.paused) {
+        bgMusic.play().catch(function(e) {
+          // Ignore autoplay errors (user needs to interact first)
+        });
+      }
+    } else {
+      // Pause background music when not running
+      if (bgMusic && !bgMusic.paused) {
+        bgMusic.pause();
+      }
+    }
+},20);</script></html>
