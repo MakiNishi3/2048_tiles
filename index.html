@@ -277,15 +277,6 @@ function createNumber(bigNum, skipOmega){
           if(isFinite(mantissa) && isFinite(logOrder)) {
             var roundedMantissa = Math.floor(mantissa * 1000) / 1000;
             var abbreviation = createAbbreviation(Math.max(0, logOrder - 1), 0);
-
-            // If abbreviation has many parts (>10), truncate it
-            var parts = abbreviation.split(' ').filter(function(p) { return p.length > 0; });
-            if(parts.length > 10) {
-              var firstParts = parts.slice(0, 3).join(' ');
-              var lastParts = parts.slice(-2).join(' ');
-              abbreviation = firstParts + ' ... ' + lastParts;
-            }
-
             result += " " + roundedMantissa + abbreviation;
           }
         }
@@ -313,15 +304,6 @@ function createNumber(bigNum, skipOmega){
           if(isFinite(mantissa) && isFinite(logOrder)) {
             var roundedMantissa = Math.floor(mantissa * 1000) / 1000;
             var abbreviation = createAbbreviation(Math.max(0, logOrder - 1), 0);
-
-            // If abbreviation has many parts (>10), truncate it
-            var parts = abbreviation.split(' ').filter(function(p) { return p.length > 0; });
-            if(parts.length > 10) {
-              var firstParts = parts.slice(0, 3).join(' ');
-              var lastParts = parts.slice(-2).join(' ');
-              abbreviation = firstParts + ' ... ' + lastParts;
-            }
-
             result += " " + roundedMantissa + abbreviation;
           }
         }
@@ -373,15 +355,6 @@ function createNumber(bigNum, skipOmega){
       }
 
       var abbreviation = createAbbreviation(logOrder - 1, 0);
-
-      // If abbreviation has many parts (>10), truncate it
-      var parts = abbreviation.split(' ').filter(function(p) { return p.length > 0; });
-      if(parts.length > 10) {
-        var firstParts = parts.slice(0, 3).join(' ');
-        var lastParts = parts.slice(-2).join(' ');
-        abbreviation = firstParts + ' ... ' + lastParts;
-      }
-
       return roundedMantissa + abbreviation;
     } else {
       // Normal tier
@@ -395,18 +368,7 @@ function createNumber(bigNum, skipOmega){
         var precision = 4 - Math.floor(Math.log10(mantissa));
         var roundedMantissa = Math.floor(mantissa * Math.pow(10, precision)) / Math.pow(10, precision);
 
-        // Create abbreviation and truncate if too long
         var abbreviation = createAbbreviation(logOrder - 1, 0);
-        var fullText = roundedMantissa + abbreviation;
-
-        // If abbreviation has many parts (>10), show first 3 and last 2 with "..."
-        var parts = abbreviation.split(' ').filter(function(p) { return p.length > 0; });
-        if(parts.length > 10) {
-          var firstParts = parts.slice(0, 3).join(' ');
-          var lastParts = parts.slice(-2).join(' ');
-          abbreviation = firstParts + ' ... ' + lastParts;
-        }
-
         return roundedMantissa + abbreviation;
       }
     }
@@ -422,17 +384,7 @@ function createNumber(bigNum, skipOmega){
     var precision = 4 - Math.floor(Math.log10(mantissa));
     var roundedMantissa = Math.floor(mantissa * Math.pow(10, precision)) / Math.pow(10, precision);
 
-    // Create abbreviation and truncate if too long
     var abbreviation = createAbbreviation(logOrder - 1, 0);
-
-    // If abbreviation has many parts (>10), show first 3 and last 2 with "..."
-    var parts = abbreviation.split(' ').filter(function(p) { return p.length > 0; });
-    if(parts.length > 10) {
-      var firstParts = parts.slice(0, 3).join(' ');
-      var lastParts = parts.slice(-2).join(' ');
-      abbreviation = firstParts + ' ... ' + lastParts;
-    }
-
     return roundedMantissa + abbreviation;
   }
 }
@@ -635,15 +587,6 @@ setInterval(function(){
           if(isFinite(mantissa) && isFinite(logOrder)) {
             var roundedMantissa = Math.floor(mantissa * 1000) / 1000;
             var abbreviation = createAbbreviation(Math.max(0, logOrder - 1), 0);
-
-            // If abbreviation has many parts (>10), truncate it
-            var parts = abbreviation.split(' ').filter(function(p) { return p.length > 0; });
-            if(parts.length > 10) {
-              var firstParts = parts.slice(0, 3).join(' ');
-              var lastParts = parts.slice(-2).join(' ');
-              abbreviation = firstParts + ' ... ' + lastParts;
-            }
-
             result += " " + roundedMantissa + abbreviation;
           }
         }
