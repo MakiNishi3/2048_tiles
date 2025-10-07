@@ -280,7 +280,7 @@ function createNumber(bigNum, skipOmega){
             var tilesText = roundedMantissa + abbreviation;
 
             // Only use scientific notation if the abbreviation is too long to display
-            if(tilesText.length > 80) {
+            if(tilesText.length > 300) {
               result += " " + roundedMantissa + " ×10^" + (logOrder * 3).toExponential(2);
             } else {
               result += " " + tilesText;
@@ -314,7 +314,7 @@ function createNumber(bigNum, skipOmega){
             var tilesText = roundedMantissa + abbreviation;
 
             // Only use scientific notation if the abbreviation is too long to display
-            if(tilesText.length > 80) {
+            if(tilesText.length > 300) {
               result += " " + roundedMantissa + " ×10^" + (logOrder * 3).toExponential(2);
             } else {
               result += " " + tilesText;
@@ -385,8 +385,8 @@ function createNumber(bigNum, skipOmega){
         var abbreviation = createAbbreviation(logOrder - 1, 0);
         var fullText = roundedMantissa + abbreviation;
 
-        // Use array notation only if text would be too long to display (> 80 chars)
-        if(fullText.length > 80) {
+        // Use array notation only if text would be too long to display (> 300 chars)
+        if(fullText.length > 300) {
           var logOfLt = Math.log10(lt);
           var arrayPart = `{10, ${Math.floor(logOfLt)}}`;
           var remainder = logOfLt - Math.floor(logOfLt);
@@ -414,8 +414,8 @@ function createNumber(bigNum, skipOmega){
     var abbreviation = createAbbreviation(logOrder - 1, 0);
     var fullText = roundedMantissa + abbreviation;
 
-    // Use array notation only if text would be too long to display (> 80 chars)
-    if(fullText.length > 80) {
+    // Use array notation only if text would be too long to display (> 300 chars)
+    if(fullText.length > 300) {
       var logOfLt = Math.log10(lt);
       var arrayPart = `{10, ${Math.floor(logOfLt)}}`;
       var remainder = logOfLt - Math.floor(logOfLt);
@@ -629,7 +629,7 @@ setInterval(function(){
             var tilesText = roundedMantissa + abbreviation;
 
             // Only use scientific notation if the abbreviation is too long to display
-            if(tilesText.length > 80) {
+            if(tilesText.length > 300) {
               result += " " + roundedMantissa + " ×10^" + (logOrder * 3).toExponential(2);
             } else {
               result += " " + tilesText;
