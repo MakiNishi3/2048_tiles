@@ -56,8 +56,8 @@ button {
 		</div>
 		<div class="button-row">
 			<button onclick="time = 1.35e11; document.getElementById('running').checked = true;" style="background: #ffff00; color: black; font-weight: bold;">TEST: Jump to 90% Array</button>
-			<button onclick="time = 5e101; spd = 50; document.getElementById('running').checked = true;" style="background: #00ffff; color: black; font-weight: bold;">TEST: Jump to ω</button>
-			<button onclick="time = 5e201; spd = 100; document.getElementById('running').checked = true;" style="background: #ff00ff; color: white; font-weight: bold;">TEST: Jump to Ω</button>
+			<button onclick="time = 5e101; document.getElementById('running').checked = true;" style="background: #00ffff; color: black; font-weight: bold;">TEST: Jump to ω</button>
+			<button onclick="time = 5e201; document.getElementById('running').checked = true;" style="background: #ff00ff; color: white; font-weight: bold;">TEST: Jump to Ω</button>
 			<button onclick="time = 5e10; spd = 1e6; document.getElementById('running').checked = true;" style="background: #ffaa00; color: black;">TEST: Tier 2</button>
 			<button onclick="spd = 1048576 * 1048576; document.getElementById('running').checked = true;" style="background: #00ff00; color: black;">Set Ultra Speed</button>
 			<button onclick="time = 0; spd = 2; power = 2; tileNum = new BigNum(1); runningTimeMs = 0; document.getElementById('running').checked = false; var bgMusic = document.getElementById('bgMusic'); if(bgMusic) { bgMusic.pause(); bgMusic.currentTime = 0; }">RESET</button>
