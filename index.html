@@ -276,12 +276,14 @@ function createNumber(bigNum, skipOmega){
           var mantissa = Math.pow(10, remainder % 3);
           if(isFinite(mantissa) && isFinite(logOrder)) {
             var roundedMantissa = Math.floor(mantissa * 1000) / 1000;
-            // Cap abbreviation at 100 stages to prevent extremely long text
-            if(logOrder > 100) {
+            var abbreviation = createAbbreviation(Math.max(0, logOrder - 1), 0);
+            var tilesText = roundedMantissa + abbreviation;
+
+            // Only use scientific notation if the abbreviation is too long to display
+            if(tilesText.length > 80) {
               result += " " + roundedMantissa + " ×10^" + (logOrder * 3).toExponential(2);
             } else {
-              var abbreviation = createAbbreviation(Math.max(0, logOrder - 1), 0);
-              result += " " + roundedMantissa + abbreviation;
+              result += " " + tilesText;
             }
           }
         }
@@ -308,12 +310,14 @@ function createNumber(bigNum, skipOmega){
           var mantissa = Math.pow(10, remainder % 3);
           if(isFinite(mantissa) && isFinite(logOrder)) {
             var roundedMantissa = Math.floor(mantissa * 1000) / 1000;
-            // Cap abbreviation at 100 stages to prevent extremely long text
-            if(logOrder > 100) {
+            var abbreviation = createAbbreviation(Math.max(0, logOrder - 1), 0);
+            var tilesText = roundedMantissa + abbreviation;
+
+            // Only use scientific notation if the abbreviation is too long to display
+            if(tilesText.length > 80) {
               result += " " + roundedMantissa + " ×10^" + (logOrder * 3).toExponential(2);
             } else {
-              var abbreviation = createAbbreviation(Math.max(0, logOrder - 1), 0);
-              result += " " + roundedMantissa + abbreviation;
+              result += " " + tilesText;
             }
           }
         }
@@ -373,9 +377,16 @@ function createNumber(bigNum, skipOmega){
         return Math.pow(power, tl).toLocaleString();
       } else {
         var logOrder = Math.floor(lt / 3);
+        var mantissa = Math.pow(10, lt % 3);
+        var precision = 4 - Math.floor(Math.log10(mantissa));
+        var roundedMantissa = Math.floor(mantissa * Math.pow(10, precision)) / Math.pow(10, precision);
 
-        // Use array notation if abbreviation would be too long (> 100 stages)
-        if(logOrder > 100) {
+        // Try to create abbreviation and check if it's too long
+        var abbreviation = createAbbreviation(logOrder - 1, 0);
+        var fullText = roundedMantissa + abbreviation;
+
+        // Use array notation only if text would be too long to display (> 80 chars)
+        if(fullText.length > 80) {
           var logOfLt = Math.log10(lt);
           var arrayPart = `{10, ${Math.floor(logOfLt)}}`;
           var remainder = logOfLt - Math.floor(logOfLt);
@@ -384,10 +395,7 @@ function createNumber(bigNum, skipOmega){
           return `${arrayPart} ${roundedTile}`;
         }
 
-        var mantissa = Math.pow(10, lt % 3);
-        var precision = 4 - Math.floor(Math.log10(mantissa));
-        var roundedMantissa = Math.floor(mantissa * Math.pow(10, precision)) / Math.pow(10, precision);
-        return roundedMantissa + createAbbreviation(logOrder - 1, 0);
+        return fullText;
       }
     }
   }
@@ -398,9 +406,16 @@ function createNumber(bigNum, skipOmega){
     return Math.pow(power, bigNum).toLocaleString();
   } else {
     var logOrder = Math.floor(lt / 3);
+    var mantissa = Math.pow(10, lt % 3);
+    var precision = 4 - Math.floor(Math.log10(mantissa));
+    var roundedMantissa = Math.floor(mantissa * Math.pow(10, precision)) / Math.pow(10, precision);
 
-    // Use array notation if abbreviation would be too long (> 100 stages)
-    if(logOrder > 100) {
+    // Try to create abbreviation and check if it's too long
+    var abbreviation = createAbbreviation(logOrder - 1, 0);
+    var fullText = roundedMantissa + abbreviation;
+
+    // Use array notation only if text would be too long to display (> 80 chars)
+    if(fullText.length > 80) {
       var logOfLt = Math.log10(lt);
       var arrayPart = `{10, ${Math.floor(logOfLt)}}`;
       var remainder = logOfLt - Math.floor(logOfLt);
@@ -409,10 +424,7 @@ function createNumber(bigNum, skipOmega){
       return `${arrayPart} ${roundedTile}`;
     }
 
-    var mantissa = Math.pow(10, lt % 3);
-    var precision = 4 - Math.floor(Math.log10(mantissa));
-    var roundedMantissa = Math.floor(mantissa * Math.pow(10, precision)) / Math.pow(10, precision);
-    return roundedMantissa + createAbbreviation(logOrder - 1, 0);
+    return fullText;
   }
 }
 
@@ -613,12 +625,14 @@ setInterval(function(){
           var mantissa = Math.pow(10, remainder % 3);
           if(isFinite(mantissa) && isFinite(logOrder)) {
             var roundedMantissa = Math.floor(mantissa * 1000) / 1000;
-            // Cap abbreviation at 100 stages to prevent extremely long text
-            if(logOrder > 100) {
+            var abbreviation = createAbbreviation(Math.max(0, logOrder - 1), 0);
+            var tilesText = roundedMantissa + abbreviation;
+
+            // Only use scientific notation if the abbreviation is too long to display
+            if(tilesText.length > 80) {
               result += " " + roundedMantissa + " ×10^" + (logOrder * 3).toExponential(2);
             } else {
-              var abbreviation = createAbbreviation(Math.max(0, logOrder - 1), 0);
-              result += " " + roundedMantissa + abbreviation;
+              result += " " + tilesText;
             }
           }
         }
