@@ -276,8 +276,13 @@ function createNumber(bigNum, skipOmega){
           var mantissa = Math.pow(10, remainder % 3);
           if(isFinite(mantissa) && isFinite(logOrder)) {
             var roundedMantissa = Math.floor(mantissa * 1000) / 1000;
-            var abbreviation = createAbbreviation(Math.min(Math.max(0, logOrder - 1), 1e11), 0);
-            result += " " + roundedMantissa + abbreviation;
+            // Cap abbreviation at 100 stages to prevent extremely long text
+            if(logOrder > 100) {
+              result += " " + roundedMantissa + " ×10^" + (logOrder * 3).toExponential(2);
+            } else {
+              var abbreviation = createAbbreviation(Math.max(0, logOrder - 1), 0);
+              result += " " + roundedMantissa + abbreviation;
+            }
           }
         }
 
@@ -303,8 +308,13 @@ function createNumber(bigNum, skipOmega){
           var mantissa = Math.pow(10, remainder % 3);
           if(isFinite(mantissa) && isFinite(logOrder)) {
             var roundedMantissa = Math.floor(mantissa * 1000) / 1000;
-            var abbreviation = createAbbreviation(Math.min(Math.max(0, logOrder - 1), 1e11), 0);
-            result += " " + roundedMantissa + abbreviation;
+            // Cap abbreviation at 100 stages to prevent extremely long text
+            if(logOrder > 100) {
+              result += " " + roundedMantissa + " ×10^" + (logOrder * 3).toExponential(2);
+            } else {
+              var abbreviation = createAbbreviation(Math.max(0, logOrder - 1), 0);
+              result += " " + roundedMantissa + abbreviation;
+            }
           }
         }
 
@@ -362,10 +372,22 @@ function createNumber(bigNum, skipOmega){
       if(tl < Math.log(5e4) / Math.log(power)){
         return Math.pow(power, tl).toLocaleString();
       } else {
+        var logOrder = Math.floor(lt / 3);
+
+        // Use array notation if abbreviation would be too long (> 100 stages)
+        if(logOrder > 100) {
+          var logOfLt = Math.log10(lt);
+          var arrayPart = `{10, ${Math.floor(logOfLt)}}`;
+          var remainder = logOfLt - Math.floor(logOfLt);
+          var tileValue = Math.pow(10, remainder);
+          var roundedTile = Math.floor(tileValue * 1000) / 1000;
+          return `${arrayPart} ${roundedTile}`;
+        }
+
         var mantissa = Math.pow(10, lt % 3);
         var precision = 4 - Math.floor(Math.log10(mantissa));
         var roundedMantissa = Math.floor(mantissa * Math.pow(10, precision)) / Math.pow(10, precision);
-        return roundedMantissa + createAbbreviation(Math.floor(lt/3-1), 0);
+        return roundedMantissa + createAbbreviation(logOrder - 1, 0);
       }
     }
   }
@@ -375,10 +397,22 @@ function createNumber(bigNum, skipOmega){
   if(bigNum < Math.log(5e4) / Math.log(power)){
     return Math.pow(power, bigNum).toLocaleString();
   } else {
+    var logOrder = Math.floor(lt / 3);
+
+    // Use array notation if abbreviation would be too long (> 100 stages)
+    if(logOrder > 100) {
+      var logOfLt = Math.log10(lt);
+      var arrayPart = `{10, ${Math.floor(logOfLt)}}`;
+      var remainder = logOfLt - Math.floor(logOfLt);
+      var tileValue = Math.pow(10, remainder);
+      var roundedTile = Math.floor(tileValue * 1000) / 1000;
+      return `${arrayPart} ${roundedTile}`;
+    }
+
     var mantissa = Math.pow(10, lt % 3);
     var precision = 4 - Math.floor(Math.log10(mantissa));
     var roundedMantissa = Math.floor(mantissa * Math.pow(10, precision)) / Math.pow(10, precision);
-    return roundedMantissa + createAbbreviation(Math.floor(lt/3-1), 0);
+    return roundedMantissa + createAbbreviation(logOrder - 1, 0);
   }
 }
 
@@ -579,8 +613,13 @@ setInterval(function(){
           var mantissa = Math.pow(10, remainder % 3);
           if(isFinite(mantissa) && isFinite(logOrder)) {
             var roundedMantissa = Math.floor(mantissa * 1000) / 1000;
-            var abbreviation = createAbbreviation(Math.min(Math.max(0, logOrder - 1), 1e11), 0);
-            result += " " + roundedMantissa + abbreviation;
+            // Cap abbreviation at 100 stages to prevent extremely long text
+            if(logOrder > 100) {
+              result += " " + roundedMantissa + " ×10^" + (logOrder * 3).toExponential(2);
+            } else {
+              var abbreviation = createAbbreviation(Math.max(0, logOrder - 1), 0);
+              result += " " + roundedMantissa + abbreviation;
+            }
           }
         }
 
