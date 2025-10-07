@@ -687,10 +687,11 @@ setInterval(function(){
     if (document.getElementById("running").checked) {
       var increment = spd / 50;
 
-      // For very large time values, scale the increment proportionally
+      // For very large time values, scale the increment exponentially with speed
       if(time > 1e50) {
-        // Add a percentage of current time value to keep movement visible
-        var scaledIncrement = time * 0.00001; // 0.001% of current value
+        // Use exponential scaling: base increment scaled by 2^(speed/5)
+        var speedMultiplier = Math.pow(2, spd / 5);
+        var scaledIncrement = time * speedMultiplier / 1e12;
         increment = Math.max(increment, scaledIncrement);
       }
 
