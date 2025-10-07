@@ -708,8 +708,10 @@ setInterval(function(){
 
       // For very large time values, scale the increment exponentially with speed
       if(time > 1e50) {
-        // Use exponential scaling: base increment scaled by 2^(speed/5)
-        var speedMultiplier = Math.pow(2, spd / 5);
+        // At omega levels, use double exponential scaling: 2^2^(speed/10)
+        // This provides much more aggressive scaling at extreme values
+        var exponent = Math.min(spd / 10, 10); // Cap inner exponent to prevent overflow
+        var speedMultiplier = Math.pow(2, Math.pow(2, exponent));
         var scaledIncrement = time * speedMultiplier / 1e12;
         increment = Math.max(increment, scaledIncrement);
       }
